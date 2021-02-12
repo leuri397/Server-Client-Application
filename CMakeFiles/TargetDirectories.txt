@@ -1,0 +1,11 @@
+/home/student/Server-Client-Application/CMakeFiles/rebuild_cache.dir
+/home/student/Server-Client-Application/CMakeFiles/edit_cache.dir
+/home/student/Server-Client-Application/Common/CMakeFiles/rebuild_cache.dir
+/home/student/Server-Client-Application/Common/CMakeFiles/edit_cache.dir
+/home/student/Server-Client-Application/Common/CMakeFiles/common.dir
+/home/student/Server-Client-Application/Server/CMakeFiles/rebuild_cache.dir
+/home/student/Server-Client-Application/Server/CMakeFiles/edit_cache.dir
+/home/student/Server-Client-Application/Server/CMakeFiles/Server.dir
+/home/student/Server-Client-Application/Client/CMakeFiles/rebuild_cache.dir
+/home/student/Server-Client-Application/Client/CMakeFiles/edit_cache.dir
+/home/student/Server-Client-Application/Client/CMakeFiles/Client.dir

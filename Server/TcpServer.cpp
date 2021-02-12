@@ -9,7 +9,9 @@ TcpServer::~TcpServer()
 {
 	if (_status == status::UP)
 		stop();
+#ifdef _WIN32
 	WSACleanup();
+#endif
 }
 
 void TcpServer::setHandler(client_handler_function newHandler)
@@ -58,16 +60,16 @@ TcpServer::status TcpServer::start()
 TcpServer::status TcpServer::start() {
 	struct sockaddr_in server;
 	server.sin_addr.s_addr = INADDR_ANY;
-	server.sin_port = htons(port);
+	server.sin_port = htons(_port);
 	server.sin_family = AF_INET;
-	serv_socket = socket(AF_INET, SOCK_STREAM, 0);
+	_serv_socket = socket(AF_INET, SOCK_STREAM, 0);
 
-	if (serv_socket == -1) return _status = status::err_socket_init;
-	if (bind(serv_socket, (struct sockaddr*)&server, sizeof(server)) < 0) return _status = status::err_socket_bind;
-	if (listen(serv_socket, 3) < 0)return _status = status::err_socket_listening;
+	if (_serv_socket == -1) return _status = status::CONNECTION_ERROR;
+	if (bind(_serv_socket, (struct sockaddr*)&server, sizeof(server)) < 0) return _status = status::CONNECTION_ERROR;
+	if (listen(_serv_socket, 3) < 0)return _status = status::CONNECTION_ERROR;
 
-	_status = status::up;
-	handler_thread = std::thread([this] {handlingLoop(); });
+	_status = status::UP;
+	_handler_thread = std::thread([this] {handlingLoop(); });
 	return _status;
 }
 #endif
@@ -75,9 +77,11 @@ void TcpServer::stop()
 {
 	_status = status::CLOSE;
 	joinLoop();
-	closesocket(_serv_socket);
 #ifdef _WIN32 
 	WSACleanup();
+	closesocket(_serv_socket);
+#else
+	close(_serv_socket);
 #endif
 	for (std::thread& cl_thr : _client_handler_threads)
 		cl_thr.join();
@@ -130,26 +134,29 @@ void TcpServer::handlingLoop()
 }
 #else
 void TcpServer::handlingLoop() {
-	while (_status == status::up) {
+	while (_status == status::UP) {
 		int client_socket;
 		struct sockaddr_in client_addr;
+		fd_set serv_set;
+		FD_SET (_serv_socket, &serv_set);
 		int addrlen = sizeof(struct sockaddr_in);
-		int connections_count = select(0, &serv_set, 0, 0, &timeout);
-		if (connections_count == 0)
-			continue;
-		if ((client_socket = accept(serv_socket, (struct sockaddr*)&client_addr, (socklen_t*)&addrlen)) >= 0 && _status == status::up)
-			client_handler_threads.push_back(std::thread([this, &client_socket, &client_addr] {
-			handler(Client(client_socket, client_addr));
-			client_handling_end.push_back(std::this_thread::get_id());
+		timeval timeout{ 1, 500 };
+		//int connections_count = select(0, &serv_set, 0, 0, &timeout);
+		//if (connections_count == 0)
+		//	continue;
+		if ((client_socket = accept(_serv_socket, (struct sockaddr*)&client_addr, (socklen_t*)&addrlen)) >= 0 && _status == status::UP)
+			_client_handler_threads.push_back(std::thread([this, &client_socket, &client_addr] {
+			_handler_function(ClientHandler(client_socket, client_addr));
+			_client_handling_end.push_back(std::this_thread::get_id());
 		}));
 
-		if (!client_handling_end.empty())
-			for (std::list<std::thread::id>::iterator id_it = client_handling_end.begin(); !client_handling_end.empty(); id_it = client_handling_end.begin())
-				for (std::list<std::thread>::iterator thr_it = client_handler_threads.begin(); thr_it != client_handler_threads.end(); ++thr_it)
+		if (!_client_handling_end.empty())
+			for (std::list<std::thread::id>::iterator id_it = _client_handling_end.begin(); !_client_handling_end.empty(); id_it = _client_handling_end.begin())
+				for (std::list<std::thread>::iterator thr_it = _client_handler_threads.begin(); thr_it != _client_handler_threads.end(); ++thr_it)
 					if (thr_it->get_id() == *id_it) {
 						thr_it->join();
-						client_handler_threads.erase(thr_it);
-						client_handling_end.erase(id_it);
+						_client_handler_threads.erase(thr_it);
+						_client_handling_end.erase(id_it);
 						break;
 					}
 

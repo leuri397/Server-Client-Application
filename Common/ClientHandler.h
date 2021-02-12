@@ -1,4 +1,14 @@
-#include <WinSock2.h>
+#ifdef _WIN32
+	#include <WinSock2.h>
+#else
+	#include <sys/types.h>
+	#include <sys/socket.h>
+	#include <netinet/in.h>
+	#include <unistd.h>
+	#include <stdio.h>
+	#include <stdlib.h>
+	#pragma stdlib_stddef_h
+#endif
 #include <functional>
 #include "BERlength.h"
 #define BUFFER_SIZE 4096
@@ -20,14 +30,14 @@ public:
 	uint16_t getPort() const;
 private:
 	unsigned long getLength();
+	char* _bufferPtr;
 	
 #ifdef _WIN32
 	SOCKET _socket;
 	SOCKADDR_IN _address;
-	char* _bufferPtr;
 #else
-	int socket;
-	struct sockaddr_in address;
+	int _socket;
+	struct sockaddr_in _address;
 #endif
 	
 };

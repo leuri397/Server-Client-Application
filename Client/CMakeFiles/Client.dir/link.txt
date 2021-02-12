@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/Client.dir/Client.cpp.o ../Common/CMakeFiles/common.dir/BERlength.cpp.o ../Common/CMakeFiles/common.dir/ClientHandler.cpp.o -o Client 

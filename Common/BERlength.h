@@ -1,4 +1,14 @@
 #pragma once
+
+#ifdef _WIN32
+#else
+	#include <sys/types.h>
+	#include <unistd.h>
+	#include <stdio.h>
+	#include <stdlib.h>
+	#pragma stdlib_stddef_h
+#endif
+
 class BERlength
 {
 public:
