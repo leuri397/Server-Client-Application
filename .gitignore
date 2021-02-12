@@ -2,3 +2,13 @@
 .vs/
 
 out/
+
+CMakeCache.txt
+
+Client/Client
+
+Client/cmake_install.cmake
+
+Client/Makefile
+
+cmake_install.cmake
