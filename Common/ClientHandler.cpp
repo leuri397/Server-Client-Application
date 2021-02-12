@@ -1,13 +1,23 @@
 #include "ClientHandler.h"
 
+#ifdef _WIN32
 ClientHandler::ClientHandler(SOCKET socket, SOCKADDR_IN address) : _socket(socket), _address(address), _bufferPtr(nullptr)
 {
 }
+#else
+ClientHandler::ClientHandler(int socket, struct sockaddr_in address) : _socket(socket), _address(address), _bufferPtr(nullptr)
+{
+}
+#endif
 
 ClientHandler::~ClientHandler()
 {
 	shutdown(_socket, 0);
+#ifdef _WIN32
 	closesocket(_socket);
+#else
+	close(_socket);
+#endif
 	delete[] _bufferPtr;
 }
 
@@ -43,10 +53,18 @@ bool ClientHandler::sendData(const char* buffer, const size_t size)
 	return true;
 }
 
+#ifdef _WIN32
 uint32_t ClientHandler::getHost() const
 {
 	return _address.sin_addr.S_un.S_addr;
 }
+#else
+uint32_t ClientHandler::getHost() const
+{
+	return _address.sin_addr.s_addr;
+}
+
+#endif
 
 uint16_t ClientHandler::getPort() const
 {

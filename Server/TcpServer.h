@@ -1,10 +1,19 @@
 #pragma once
-#include <WinSock2.h>
 #include <functional>
 #include <thread>
 #include <list>
-#pragma comment(lib,"ws2_32.lib") 
 #include "ClientHandler.h"
+#ifdef _WIN32
+	#include <WinSock2.h>
+	#pragma comment(lib,"ws2_32.lib")
+#else
+	#include <sys/types.h>
+	#include <sys/socket.h>
+	#include <netinet/in.h>
+	#include <unistd.h>
+	#include <stdio.h>
+	#include <stdlib.h>
+#endif
 
 class TcpServer
 {
@@ -40,9 +49,12 @@ private:
 	std::list<std::thread> _client_handler_threads;
 	std::list<std::thread::id> _client_handling_end;
 
+	status _status = status::CLOSE;
+#ifdef _WIN32
 	SOCKET _serv_socket = INVALID_SOCKET;
 	WSAData _w_data;
-
-	status _status = status::CLOSE;
+#else
+	int _serv_socket;
+#endif
 };
 

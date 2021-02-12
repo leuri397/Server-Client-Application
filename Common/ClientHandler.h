@@ -5,7 +5,13 @@
 
 class ClientHandler {
 public:
+	
+#ifdef _WIN32
 	ClientHandler(SOCKET socket, SOCKADDR_IN address);
+#else
+	ClientHandler(int socket, struct sockaddr_in address);
+#endif
+	
 	~ClientHandler();
 	int loadData();
 	const char* getData();
@@ -14,7 +20,14 @@ public:
 	uint16_t getPort() const;
 private:
 	unsigned long getLength();
+	
+#ifdef _WIN32
 	SOCKET _socket;
 	SOCKADDR_IN _address;
 	char* _bufferPtr;
+#else
+	int socket;
+	struct sockaddr_in address;
+#endif
+	
 };
