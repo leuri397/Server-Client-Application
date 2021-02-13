@@ -141,9 +141,12 @@ void TcpServer::handlingLoop() {
 		FD_SET (_serv_socket, &serv_set);
 		int addrlen = sizeof(struct sockaddr_in);
 		timeval timeout{ 1, 500 };
-		//int connections_count = select(0, &serv_set, 0, 0, &timeout);
-		//if (connections_count == 0)
-		//	continue;
+		struct pollfd event;
+		event.fd = _serv_socket;
+		event.events = POLLIN | POLLRDNORM;
+		poll(&event, 1, 500);
+		if (event.revents == 0)
+			continue;
 		if ((client_socket = accept(_serv_socket, (struct sockaddr*)&client_addr, (socklen_t*)&addrlen)) >= 0 && _status == status::UP)
 			_client_handler_threads.push_back(std::thread([this, &client_socket, &client_addr] {
 			_handler_function(ClientHandler(client_socket, client_addr));
