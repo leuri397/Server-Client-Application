@@ -1,7 +1,7 @@
 #include <iostream>
 #include <thread>
 #include "BERlength.h"
-#include "ClientHandler.h"
+#include "ConnectionHandler.h"
 
 #ifdef _WIN32
 #pragma comment(lib,"ws2_32.lib") 
@@ -18,16 +18,24 @@
 	#include <arpa/inet.h>
 #endif
 
-ClientHandler getConnectionHandler(std::string address, int port);
+ConnectionHandler getConnectionHandler(std::string address, int port);
 
 int main()
 {
-	ClientHandler transmission = getConnectionHandler("127.0.0.1", 8080);
-
+	ConnectionHandler transmission = getConnectionHandler("127.0.0.1", 8080);
+	std::string answer;
+	int intToSend = 42;
+	double doubleToSend = 0.87876765;
+	answer = transmission.getString();
+	transmission.transmit(intToSend);
+	std::cout << "Recieved message: " << answer << std::endl << "Transmitted number: " << intToSend << std::endl;
+	answer = transmission.getString();
+	transmission.transmit(doubleToSend);
+	std::cout << "Recieved message: " << answer << std::endl << "Transmitted number: " << doubleToSend << std::endl;
 }
 
 #ifdef _WIN32
-ClientHandler getConnectionHandler(std::string address, int port)
+ConnectionHandler getConnectionHandler(std::string address, int port)
 {
 	WSADATA wsa;
 	SOCKET s;
@@ -39,10 +47,10 @@ ClientHandler getConnectionHandler(std::string address, int port)
 	server.sin_family = AF_INET;
 	server.sin_port = htons(8080);
 	connect(s, (struct sockaddr*)&server, sizeof(server));
-	return ClientHandler(s, server);
+	return ConnectionHandler(s, server);
 }
 #else
-ClientHandler getConnectionHandler(std::string address, int port)
+ConnectionHandler getConnectionHandler(std::string address, int port)
 {
 	int s;
 	sockaddr_in server;
@@ -51,6 +59,6 @@ ClientHandler getConnectionHandler(std::string address, int port)
 	server.sin_family = AF_INET;
 	server.sin_port = htons(port);
 	connect(s, (struct sockaddr*)&server, sizeof(server));
-	return ClientHandler(s, server);
+	return ConnectionHandler(s, server);
 }
 #endif

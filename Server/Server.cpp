@@ -2,8 +2,8 @@
 #include <string>
 #include "TcpServer.h"
 
-std::string getHostStr(const ClientHandler& client);
-void serverBehaviour(ClientHandler handler);
+std::string getHostStr(const ConnectionHandler& client);
+void serverBehaviour(ConnectionHandler handler);
 
 int main() {
     TcpServer server(8080, serverBehaviour);
@@ -19,23 +19,25 @@ int main() {
 
 }
 
-void serverBehaviour(ClientHandler handler)
+void serverBehaviour(ConnectionHandler handler)
 {
-    int stringSize = handler.loadData();
-    std::cout << "Connection from: " + getHostStr(handler) + "\nNickname: ";
-	for (int i = 0; i < stringSize; i++)
+    try
+    {
+        std::cout << "Connection from: " << getHostStr(handler) << std::endl;
+        handler.transmit("Give me some integer");
+        int recievedInt = handler.getInt();
+        std::cout << "Recieved integer: " << recievedInt << std::endl;
+        handler.transmit("Give me some double");
+        double recievedDouble = handler.getDouble();
+        std::cout << "Recieved double: " << recievedDouble << std::endl;
+    }
+	catch (const std::exception& error)
 	{
-        std::cout << handler.getData()[i];
+        std::cerr << "Error occured during transmition" << std::endl;
 	}
-    std::cout << std::endl;
-    handler.sendData("OK", 3);
-    handler.loadData();
-    std::string filename(handler.getData());
-    std::cout << "Requested filename: " << filename << std::endl;
-    handler.sendData(filename.c_str(), filename.size());
 }
 
-std::string getHostStr(const ClientHandler& client) {
+std::string getHostStr(const ConnectionHandler& client) {
     uint32_t ip = client.getHost();
     return std::string() + std::to_string(int(reinterpret_cast<char*>(&ip)[0])) + '.' +
         std::to_string(int(reinterpret_cast<char*>(&ip)[1])) + '.' +

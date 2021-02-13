@@ -1,1 +1,1 @@
-add_library(common OBJECT "BERlength.cpp" "ClientHandler.cpp")
+add_library(common OBJECT "BERlength.cpp" "ConnectionHandler.cpp" "Exceptions.h")

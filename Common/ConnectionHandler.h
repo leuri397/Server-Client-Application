@@ -10,8 +10,18 @@
 	#pragma stdlib_stddef_h
 #endif
 #include <functional>
+#include <string>
 #include "BERlength.h"
+#include "Exceptions.h"
 #define BUFFER_SIZE 4096
+
+enum class Types : char
+{
+	INTEGER,
+	STRING,
+	FLOAT,
+	BYTE
+};
 
 class ConnectionHandler {
 public:
@@ -19,17 +29,29 @@ public:
 #ifdef _WIN32
 	ConnectionHandler(SOCKET socket, SOCKADDR_IN address);
 #else
-	ConnectionHandler(int socket, struct sockaddr_in address);
+	ClientHandler(int socket, struct sockaddr_in address);
 #endif
 	
 	~ConnectionHandler();
+	
+	uint32_t getHost() const;
+	uint16_t getPort() const;
+	
+	bool transmit(int number);
+	bool transmit(std::string string);
+	bool transmit(double number);
+
+	int getInt();
+	std::string getString();
+	double getDouble();
+
+private:
+	bool _haveData;
+	int _length;
+	unsigned long getLength();
 	int loadData();
 	const char* getData();
 	bool sendData(const char* buffer, const size_t size);
-	uint32_t getHost() const;
-	uint16_t getPort() const;
-private:
-	unsigned long getLength();
 	char* _bufferPtr;
 	
 #ifdef _WIN32

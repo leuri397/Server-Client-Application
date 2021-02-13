@@ -116,7 +116,7 @@ void TcpServer::handlingLoop()
 			continue;
 		if ((client_socket = accept(_serv_socket, (struct sockaddr*)&client_addr, &addrlen)) != 0 && _status == status::UP) {
 			_client_handler_threads.push_back(std::thread([this, &client_socket, &client_addr] {
-				_handler_function(ClientHandler(client_socket, client_addr));
+				_handler_function(ConnectionHandler(client_socket, client_addr));
 				_client_handling_end.push_back(std::this_thread::get_id());
 			}));
 		}
@@ -149,7 +149,7 @@ void TcpServer::handlingLoop() {
 			continue;
 		if ((client_socket = accept(_serv_socket, (struct sockaddr*)&client_addr, (socklen_t*)&addrlen)) >= 0 && _status == status::UP)
 			_client_handler_threads.push_back(std::thread([this, &client_socket, &client_addr] {
-			_handler_function(ClientHandler(client_socket, client_addr));
+			_handler_function(ConnectionHandler(client_socket, client_addr));
 			_client_handling_end.push_back(std::this_thread::get_id());
 		}));
 

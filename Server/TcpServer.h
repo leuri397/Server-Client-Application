@@ -2,7 +2,7 @@
 #include <functional>
 #include <thread>
 #include <list>
-#include "ClientHandler.h"
+#include "ConnectionHandler.h"
 #ifdef _WIN32
 	#include <WinSock2.h>
 	#pragma comment(lib,"ws2_32.lib")
@@ -18,7 +18,7 @@
 
 class TcpServer
 {
-	typedef std::function<void(ClientHandler)> client_handler_function;
+	typedef std::function<void(ConnectionHandler)> client_handler_function;
 
 public:
 	enum class status
