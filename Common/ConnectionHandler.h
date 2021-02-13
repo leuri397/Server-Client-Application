@@ -29,7 +29,7 @@ public:
 #ifdef _WIN32
 	ConnectionHandler(SOCKET socket, SOCKADDR_IN address);
 #else
-	ClientHandler(int socket, struct sockaddr_in address);
+	ConnectionHandler(int socket, struct sockaddr_in address);
 #endif
 	
 	~ConnectionHandler();

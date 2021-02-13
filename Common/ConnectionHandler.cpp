@@ -5,7 +5,7 @@ ConnectionHandler::ConnectionHandler(SOCKET socket, SOCKADDR_IN address) : _sock
 {
 }
 #else
-ConnectionHandler::ConnectionHandler(int socket, struct sockaddr_in address) : _socket(socket), _address(address), _bufferPtr(nullptr)
+ConnectionHandler::ConnectionHandler(int socket, struct sockaddr_in address) : _socket(socket), _address(address), _bufferPtr(nullptr), _haveData(false)
 {
 }
 #endif
@@ -25,16 +25,16 @@ int ConnectionHandler::loadData()
 {
 	if (_bufferPtr != nullptr)
 		delete _bufferPtr;
-	char SizeBuffer[128];
-	int bytesGet = recv(_socket, SizeBuffer, 1, 0);
+	unsigned char SizeBuffer[128];
+	int bytesGet = recv(_socket, (char*)&SizeBuffer[0], 1, 0);
 	if ((SizeBuffer[0] & 0x80) == 0)
 	{
-		_bufferPtr = new char[SizeBuffer[0]];
+		_bufferPtr = new char[SizeBuffer[0] + 1];
 		bytesGet = recv(_socket, _bufferPtr, SizeBuffer[0], 0);
 		return SizeBuffer[0];
 	}
-	bytesGet = recv(_socket, &SizeBuffer[1], SizeBuffer[0] & 0x7F, 0);
-	BERlength messageLength(SizeBuffer, 128);
+	bytesGet = recv(_socket, (char*)&SizeBuffer[1], SizeBuffer[0] & 0x7F, 0);
+	BERlength messageLength((char*)SizeBuffer, 128);
 	_bufferPtr = new char[messageLength.getValue()];
 	bytesGet = recv(_socket, _bufferPtr, messageLength.getValue(), 0);
 	return  messageLength.getValue();

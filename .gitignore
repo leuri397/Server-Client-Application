@@ -30,3 +30,7 @@ Server/Makefile
 Server/Server
 
 Common/Makefile
+
+Client/Client.core
+
+Server/Server.core

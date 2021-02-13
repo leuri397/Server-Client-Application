@@ -32,7 +32,6 @@ int main()
 	answer = transmission.getString();
 	transmission.transmit(doubleToSend);
 	std::cout << "Recieved message: " << answer << std::endl << "Transmitted number: " << doubleToSend << std::endl;
-	std::cin >> answer;
 }
 
 #ifdef _WIN32
@@ -55,11 +54,11 @@ ConnectionHandler getConnectionHandler(std::string address, int port)
 {
 	int s;
 	sockaddr_in server;
-	s = socket(AF_INET, SOCK_STREAM, 0);
 	server.sin_addr.s_addr = inet_addr(address.c_str());
 	server.sin_family = AF_INET;
 	server.sin_port = htons(port);
-	connect(s, (struct sockaddr*)&server, sizeof(server));
+	s = socket(AF_INET, SOCK_STREAM, 0);
+	connect(s, (sockaddr*)&server, sizeof(server));
 	return ConnectionHandler(s, server);
 }
 #endif
