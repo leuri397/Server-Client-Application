@@ -12,3 +12,21 @@ Client/cmake_install.cmake
 Client/Makefile
 
 cmake_install.cmake
+
+CMakeFiles/
+
+Client/CMakeFiles/
+
+Common/CMakeFiles/
+
+Common/MakeFile
+
+Makefile
+
+Server/CMakeFiles/
+
+Server/Makefile
+
+Server/Server
+
+Common/Makefile
