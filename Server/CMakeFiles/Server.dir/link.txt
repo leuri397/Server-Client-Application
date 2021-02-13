@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/Server.dir/Server.cpp.o CMakeFiles/Server.dir/TcpServer.cpp.o ../Common/CMakeFiles/common.dir/BERlength.cpp.o ../Common/CMakeFiles/common.dir/ClientHandler.cpp.o -o Server  -pthread 
