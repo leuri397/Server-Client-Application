@@ -32,6 +32,7 @@ int main()
 	answer = transmission.getString();
 	transmission.transmit(doubleToSend);
 	std::cout << "Recieved message: " << answer << std::endl << "Transmitted number: " << doubleToSend << std::endl;
+	std::cin >> answer;
 }
 
 #ifdef _WIN32

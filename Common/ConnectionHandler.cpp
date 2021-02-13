@@ -81,7 +81,7 @@ bool ConnectionHandler::transmit(int number)
 
 bool ConnectionHandler::transmit(std::string string)
 {
-	char* buffer = new char[string.size() + 2];
+	char* buffer = new char[string.size() + 3];
 	buffer[0] = static_cast<char>(Types::STRING);
 	strcpy(&buffer[1], string.c_str());
 	bool result = sendData(buffer, string.size() + 1);
@@ -92,7 +92,7 @@ bool ConnectionHandler::transmit(std::string string)
 bool ConnectionHandler::transmit(double number)
 {
 	char buffer[sizeof(double) + 1];
-	buffer[0] = static_cast<char>(Types::INTEGER);
+	buffer[0] = static_cast<char>(Types::FLOAT);
 	*(double*)(&buffer[1]) = number;
 	return sendData(buffer, sizeof(buffer));
 }
@@ -107,7 +107,7 @@ int ConnectionHandler::getInt()
 	const char* data = _bufferPtr;
 	if (static_cast<Types>(data[0]) != Types::INTEGER)
 		throw UnexpectedType();
-	if (_length != sizeof(int))
+	if (_length - 1 != sizeof(int))
 		throw UnexpectedType();
 	int result = *(int*)(&data[1]);
 	_haveData = false;
@@ -141,7 +141,7 @@ double ConnectionHandler::getDouble()
 	const char* data = _bufferPtr;
 	if (static_cast<Types>(data[0]) != Types::FLOAT)
 		throw UnexpectedType();
-	if (_length != sizeof(double))
+	if (_length - 1 != sizeof(double))
 		throw UnexpectedType();
 	double result = *(double*)(&data[1]);
 	_haveData = false;
