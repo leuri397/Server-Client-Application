@@ -8,6 +8,7 @@
 	#include <stdio.h>
 	#include <stdlib.h>
 	#pragma stdlib_stddef_h
+	#include <cstring>
 #endif
 #include <functional>
 #include <string>

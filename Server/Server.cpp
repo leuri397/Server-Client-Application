@@ -9,7 +9,7 @@ int main() {
     TcpServer server(8080, serverBehaviour);
     if (server.start() == TcpServer::status::UP) {
         std::cout << "Server is up!" << std::endl;
-        std::this_thread::sleep_for(std::chrono::seconds(30));
+        std::this_thread::sleep_for(std::chrono::seconds(10));
         server.stop();
     }
     else {
