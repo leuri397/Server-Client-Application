@@ -38,7 +38,10 @@ TcpServer::status TcpServer::getStatus() const
 #ifdef _WIN32
 TcpServer::status TcpServer::start()
 {
-	WSAStartup(MAKEWORD(2, 2), &_w_data);
+	if (WSAStartup(MAKEWORD(2, 2), &_w_data) != 0)
+	{
+		return _status = status::CONNECTION_ERROR;
+	}
 
 	SOCKADDR_IN address;
 	address.sin_addr.S_un.S_addr = INADDR_ANY;
@@ -120,6 +123,10 @@ void TcpServer::handlingLoop()
 				_client_handling_end.push_back(std::this_thread::get_id());
 			}));
 		}
+		else
+		{
+			throw ConnectionError();
+		}
 		if (!_client_handling_end.empty())
 			for (std::list<std::thread::id>::iterator id_it = _client_handling_end.begin(); !_client_handling_end.empty(); id_it = _client_handling_end.begin())
 				for (std::list<std::thread>::iterator thr_it = _client_handler_threads.begin(); thr_it != _client_handler_threads.end(); ++thr_it)
@@ -152,6 +159,10 @@ void TcpServer::handlingLoop() {
 			_handler_function(ConnectionHandler(client_socket, client_addr));
 			_client_handling_end.push_back(std::this_thread::get_id());
 		}));
+		else
+		{
+			throw ConnectionError();
+		}
 
 		if (!_client_handling_end.empty())
 			for (std::list<std::thread::id>::iterator id_it = _client_handling_end.begin(); !_client_handling_end.empty(); id_it = _client_handling_end.begin())

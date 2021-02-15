@@ -1,11 +1,11 @@
 #include "ConnectionHandler.h"
 
 #ifdef _WIN32
-ConnectionHandler::ConnectionHandler(SOCKET socket, SOCKADDR_IN address) : _socket(socket), _address(address), _bufferPtr(nullptr), _haveData(false)
+ConnectionHandler::ConnectionHandler(SOCKET socket, SOCKADDR_IN address) : _socket(socket), _address(address), _bufferPtr(nullptr), _haveData(false), _length(0)
 {
 }
 #else
-ConnectionHandler::ConnectionHandler(int socket, struct sockaddr_in address) : _socket(socket), _address(address), _bufferPtr(nullptr), _haveData(false)
+ConnectionHandler::ConnectionHandler(int socket, struct sockaddr_in address) : _socket(socket), _address(address), _bufferPtr(nullptr), _haveData(false), _length(0)
 {
 }
 #endif
@@ -27,16 +27,43 @@ int ConnectionHandler::loadData()
 		delete _bufferPtr;
 	unsigned char SizeBuffer[128];
 	int bytesGet = recv(_socket, (char*)&SizeBuffer[0], 1, 0);
+	if (bytesGet != 1)
+		throw SocketError();
 	if ((SizeBuffer[0] & 0x80) == 0)
 	{
-		_bufferPtr = new char[SizeBuffer[0] + 1];
-		bytesGet = recv(_socket, _bufferPtr, SizeBuffer[0], 0);
-		return SizeBuffer[0];
+		_bufferPtr = new char[(int)SizeBuffer[0] + 1];
+		if (_bufferPtr == nullptr)
+			throw OutOfMemory();
+		int recievedTotal = 0;
+		while (recievedTotal < SizeBuffer[0])
+		{
+			bytesGet = recv(_socket, _bufferPtr + recievedTotal, SizeBuffer[0], 0);
+			if (bytesGet == -1 || bytesGet == 0)
+				throw SocketError();
+			recievedTotal += bytesGet;
+		}
+		return recievedTotal;
 	}
-	bytesGet = recv(_socket, (char*)&SizeBuffer[1], SizeBuffer[0] & 0x7F, 0);
+	int recievedTotal = 0;
+	while (recievedTotal < SizeBuffer[0] & 0x7F)
+	{
+		bytesGet = recv(_socket, (char*)&SizeBuffer[1] + recievedTotal, SizeBuffer[0] & 0x7F, 0);
+		if (bytesGet == -1 || bytesGet == 0)
+			throw SocketError();
+		recievedTotal += bytesGet;
+	}
 	BERlength messageLength((char*)SizeBuffer, 128);
 	_bufferPtr = new char[messageLength.getValue()];
-	bytesGet = recv(_socket, _bufferPtr, messageLength.getValue(), 0);
+	if (_bufferPtr == nullptr)
+		throw OutOfMemory();
+	recievedTotal = 0;
+	while (recievedTotal < SizeBuffer[0] & 0x7F)
+	{
+		bytesGet = recv(_socket, _bufferPtr + recievedTotal, messageLength.getValue(), 0);
+		if (bytesGet == -1 || bytesGet == 0)
+			throw SocketError();
+		recievedTotal += bytesGet;
+	}
 	return  messageLength.getValue();
 }
 
@@ -48,8 +75,17 @@ const char* ConnectionHandler::getData()
 bool ConnectionHandler::sendData(const char* buffer, const size_t size)
 {
 	BERlength dataSize(size);
-	int result = send(_socket, dataSize.getBytes(), dataSize.getLength(), 0);
-	result = send(_socket, buffer, size, 0);
+	int bytesSentTotal = 0;
+	int bytesSentNow = send(_socket, dataSize.getBytes(), dataSize.getLength(), 0);
+	if (bytesSentNow != dataSize.getLength())
+		throw SocketError();
+	while (bytesSentTotal < size)
+	{
+		bytesSentNow = send(_socket, buffer + bytesSentTotal, size, 0);
+		if (bytesSentNow == -1 || bytesSentNow == 0)
+			throw SocketError();
+		bytesSentTotal += bytesSentNow;
+	}
 	return true;
 }
 
@@ -107,7 +143,7 @@ int ConnectionHandler::getInt()
 	const char* data = _bufferPtr;
 	if (static_cast<Types>(data[0]) != Types::INTEGER)
 		throw UnexpectedType();
-	if (_length - 1 != sizeof(int))
+	if ((int)_length - 1 != sizeof(int))
 		throw UnexpectedType();
 	int result = *(int*)(&data[1]);
 	_haveData = false;
@@ -141,7 +177,7 @@ double ConnectionHandler::getDouble()
 	const char* data = _bufferPtr;
 	if (static_cast<Types>(data[0]) != Types::FLOAT)
 		throw UnexpectedType();
-	if (_length - 1 != sizeof(double))
+	if ((int)_length - 1 != sizeof(double))
 		throw UnexpectedType();
 	double result = *(double*)(&data[1]);
 	_haveData = false;

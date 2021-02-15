@@ -33,7 +33,7 @@ void serverBehaviour(ConnectionHandler handler)
     }
 	catch (const std::exception& error)
 	{
-        std::cerr << "Error occured during transmition" << std::endl;
+        std::cerr << "Error occured during transmition" << error.what() << std::endl;
 	}
 }
 
